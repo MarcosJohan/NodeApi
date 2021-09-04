@@ -4,108 +4,118 @@ import { Users } from '../entity/Users';
 import { validate } from 'class-validator';
 
 export class UserController {
-  static getAll = async (req: Request, res: Response) => {
-    const userRepository = getRepository(Users);
-    let users;
+    static getAll = async (req:Request, res:Response) => {
+        const userRepository = getRepository(Users);
+        let users;
+        try
+        {
+            users = await userRepository.find({ select: ['id', 'name', 'apellido', 'ci', 'email', 'role']});
+        }catch(e){
+            res.status(400).json({message:'Error'});
+        }
 
-    try {
-      users = await userRepository.find({ select: ['id', 'username', 'role'] });
-    } catch (e) {
-      res.status(404).json({ message: 'Somenthing goes wrong!' });
-    }
+        if(users.length > 0){
+            res.send(users);
+        }else{
+            res.status(404).json({message:'Not result'});
+        }
+    };
 
-    if (users.length > 0) {
-      res.send(users);
-    } else {
-      res.status(404).json({ message: 'Not result' });
-    }
-  };
+    static get = async (req:Request, res:Response) => {
+        const { name } = req.body;
+        const userRepository = getRepository(Users);
+        let users;
 
-  static getById = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const userRepository = getRepository(Users);
-    try {
-      const user = await userRepository.findOneOrFail(id);
-      res.send(user);
-    } catch (e) {
-      res.status(404).json({ message: 'Not result' });
-    }
-  };
+        try {
+            users = await userRepository.find(name);
+        } catch (e) {
+            res.status(404).json({message:' Not result'})
+        }
 
-  static new = async (req: Request, res: Response) => {
-    const { username, password, role } = req.body;
-    const user = new Users();
+        if(users.length > 0){
+            res.send(users);
+        }else{
+            res.status(404).json({message:'Not result!'})
+        }
 
-    user.username = username;
-    user.password = password;
-    user.role = role;
+    };
 
-    // Validate
-    const validationOpt = { validationError: { target: false, value: false } };
-    const errors = await validate(user, validationOpt);
-    if (errors.length > 0) {
-      return res.status(400).json(errors);
-    }
+    static new = async (req:Request, res:Response) => {
+        const {name, apellido, ci, password, email, role} = req.body;
+        const userRepository = getRepository(Users);
+        const user = new Users();
 
-    // TODO: HASH PASSWORD
+        user.name = name;
+        user.apellido = apellido;
+        user.password = password;
+        user.ci = ci;
+        user.role = role;
+        user.email = email;
 
-    const userRepository = getRepository(Users);
-    try {
-      user.hashPassword();
-      await userRepository.save(user);
-    } catch (e) {
-      return res.status(409).json({ message: 'Username already exist' });
-    }
-    // All ok
-    res.send('User created');
-  };
+        const errors = await validate(user);
+        
+        if(errors.length > 0){
+            return res.status(400).json(errors);
+        }
 
-  static edit = async (req: Request, res: Response) => {
-    let user;
-    const { id } = req.params;
-    const { username, role } = req.body;
+        try {
+            await userRepository.save(user); 
+        } catch (e) {
+            return res.status(409).json({message:'User already exist!'})
+        }
 
-    const userRepository = getRepository(Users);
-    // Try get user
-    try {
-      user = await userRepository.findOneOrFail(id);
-      user.username = username;
-      user.role = role;
-    } catch (e) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    const validationOpt = { validationError: { target: false, value: false } };
-    const errors = await validate(user, validationOpt);
+        res.send('User created');
+    }; 
 
-    if (errors.length > 0) {
-      return res.status(400).json(errors);
-    }
+    static edit = async (req:Request, res:Response) => {
+        let user;
+        const {id} = req.params;
+        const {name, apellido, ci, email, role} = req.body;
+        const userRepository = getRepository(Users);
 
-    // Try to save user
-    try {
-      await userRepository.save(user);
-    } catch (e) {
-      return res.status(409).json({ message: 'Username already in use' });
-    }
+        //Update user
+        try {
+            user = await userRepository.findOneOrFail(id);
+            user.name = name;
+            user.apellido = apellido;
+            user.ci = ci;
+            user.role = role;
+            user.email = email;    
+        } catch (e) {
+            return res.status(404).json({message:'User not found'});
+        }
 
-    res.status(201).json({ message: 'User update' });
-  };
+        //Errors
+        const errors = await validate(user);
+        
+        if(errors.length > 0){
+            return res.status(400).json(errors);
+        }
 
-  static delete = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const userRepository = getRepository(Users);
-    let user: Users;
+        //Save user
+        try {
+            await userRepository.save(user);
+        } catch (error) {
+            return res.status(409).json({message:'Data in use'});
+        }
 
-    try {
-      user = await userRepository.findOneOrFail(id);
-    } catch (e) {
-      return res.status(404).json({ message: 'User not found' });
-    }
+        res.status(201).json({message:'User update'});
+    };
 
-    // Remove user
-    userRepository.delete(id);
-    res.status(201).json({ message: ' User deleted' });
-  };
+    static delete = async (req:Request, res:Response) => {
+        const {id} = req.params;
+        const userRepository = getRepository(Users);
+        let user : Users;
+
+        try {
+            user = await userRepository.findOneOrFail(id);
+        } catch (e) {
+            return res.status(404).json({message:'User not found'});
+        }
+
+        userRepository.delete(id);
+        res.status(201).json({message:'User remove'});
+    }; 
 }
 
 export default UserController;

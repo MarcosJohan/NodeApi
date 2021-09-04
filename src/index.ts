@@ -13,10 +13,10 @@ createConnection()
     const app = express();
     // Middlewares
     app.use(cors());
-    app.use(helmet())
-    app.use(express.json())
+    app.use(helmet());
+    app.use(express.json());
     // Routes
-    
+    app.use('/', routes);
     // start express server
     app.listen(PORT, ()=> console.log(`Server runing on port ${PORT}`));
   })
