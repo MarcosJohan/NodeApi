@@ -2,7 +2,6 @@ import {Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn, Column } from 
 import {IsNotEmpty, MinLength} from 'class-validator';
 
 @Entity()
-@Unique(['id'])
 export class Inventario{
     @PrimaryGeneratedColumn()
     id : number;
@@ -50,7 +49,4 @@ export class Inventario{
     @IsNotEmpty()
     fantasia : string;
 
-    @Column()
-    @UpdateDateColumn()
-    modificacion : Date; 
 }

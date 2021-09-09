@@ -52,13 +52,15 @@ export class UserController {
         user.role = role;
         user.email = email;
 
-        const errors = await validate(user);
+        const validation = { validationError:{ target:false, value:false }}
+        const errors = await validate(user, validation);
         
         if(errors.length > 0){
             return res.status(400).json(errors);
         }
 
         try {
+            user.hashPassword();
             await userRepository.save(user); 
         } catch (e) {
             return res.status(409).json({message:'User already exist!'})
@@ -86,7 +88,8 @@ export class UserController {
         }
 
         //Errors
-        const errors = await validate(user);
+        const validation = { validationError: { target:false, value:false }};
+        const errors = await validate(user, validation);
         
         if(errors.length > 0){
             return res.status(400).json(errors);
