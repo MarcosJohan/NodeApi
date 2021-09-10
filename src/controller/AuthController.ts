@@ -4,6 +4,7 @@ import { Users } from '../entity/Users';
 import * as jwt from 'jsonwebtoken';
 import config from '../config/config';
 import { validate } from 'class-validator';
+import {transporter} from '../config/mailer'
 
 class AuthController {
     static login = async (req:Request, res:Response) => {
@@ -89,9 +90,17 @@ class AuthController {
         }
 
         //Send Email
-
         try {
-            
+       /*     await transporter.sendMail({
+                from:'Recuperar contraseña <@gmail.com>',
+                to: user.email,
+                subject: 'Recuperar contraseña',
+                html:`
+                <b>Please click on the following link, or paste this into your browse to complete the process:</b>
+                <a href="${verificationLink}"><button>Click me</button></a>
+                `,
+            });
+        */
         } catch (e) {
             emailStatus = e;
             return res.status(400).json({message:'Somethign goes wrong'});
