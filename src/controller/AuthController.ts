@@ -64,6 +64,86 @@ class AuthController {
         await userRepository.save(user);
         res.json({message:'Password change'});
     };
+
+    static forgot = async (req:Request, res:Response) => {
+        const {email} = req.body;
+
+        if(!email){
+            return res.status(400).json({message:'Email is required'})
+        }
+
+        const message = 'Check you email for a link to reset you password';
+        let verificationLink;
+        let emailStatus = 'OK';
+
+        const userRepository = getRepository(Users);
+        let user : Users;
+
+        try {
+            user = await userRepository.findOneOrFail({ where: { email } });
+            const token = jwt.sign({id:user.id, email:user.email}, config.jwtSecretReset, { expiresIn:'10m'});
+            verificationLink = `http://localhost:3000/new-password/${token}`; 
+            user.resetToken = token;
+        } catch (e) {
+            return res.status(400).json({message:'Email not exist'});
+        }
+
+        //Send Email
+
+        try {
+            
+        } catch (e) {
+            emailStatus = e;
+            return res.status(400).json({message:'Somethign goes wrong'});
+        }
+
+
+        try {
+            await userRepository.save(user);
+        } catch (e) {
+            emailStatus = e;
+            return res.status(400).json({message:'Something woes wrong'});
+        }
+
+        return res.json({message, info: emailStatus});
+    };
+
+    static newPassword = async (req:Request, res:Response) => {
+        const {newPassword} = req.body;
+        const resetToken = req.headers['reset'] as string;
+
+        if(!(resetToken && newPassword)){
+            return res.status(400).json({message:'Los datos son nesesarios'});
+        }
+
+        const userRepository = getRepository(Users);
+        let jwtPayload;
+        let user : Users;
+
+        try {
+            jwtPayload = jwt.verify(resetToken, config.jwtSecretReset);
+            user = await userRepository.findOneOrFail({ where:{resetToken}});
+        } catch (e) {
+            return res.status(401).json({message:'Something goes wrong'})
+        }
+
+        user.password = newPassword;
+        const validation = {validationError: {target:false, value:false}};
+        const errors = await validate(user, validation);
+
+        if(errors.length > 0){
+            return res.status(400).json(errors);
+        }
+
+        try {
+            user.hashPassword();
+            await userRepository.save(user);
+        } catch (e) {
+            return res.status(400).json({message:'Somethign goes wrong'}); 
+        }
+
+        res.json({message:'Password change'});
+    };
 }
 
 export default AuthController;
