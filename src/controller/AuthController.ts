@@ -27,9 +27,17 @@ class AuthController {
             return res.status(400).json({message:'Email or password incorrect'});
         }
 
-        const token = jwt.sign({ id: user.id, email: user.email}, config.jwtSecret, { expiresIn:'1h' });
+        const token = jwt.sign({ id: user.id, email: user.email}, config.jwtSecret, { expiresIn:'120' });
+        const refreshToken = jwt.sign({id: user.id, email: user.email}, config.jwtSecretRefresh, {expiresIn:'86400'});
+        user.refreshToken = refreshToken;
+
+        try {
+            await userRepository.save(user);
+        } catch (e) {
+            res.status(400).json({message:'Somethign goes wrong'});
+        }
         
-        res.json({ token });
+        res.json({ token, refreshToken, role: user.role });
     };
 
     static changePassword = async (req:Request, res:Response) => {
@@ -82,8 +90,8 @@ class AuthController {
 
         try {
             user = await userRepository.findOneOrFail({ where: { email } });
-            const token = jwt.sign({id:user.id, email:user.email}, config.jwtSecretReset, { expiresIn:'10m'});
-            verificationLink = `http://localhost:3000/new-password/${token}`; 
+            const token = jwt.sign({id:user.id, email:user.email}, config.jwtSecretReset, { expiresIn:'5m'});
+            verificationLink = `http://localhost:4200/new-password/${token}`; 
             user.resetToken = token;
         } catch (e) {
             return res.status(400).json({message:'Email not exist'});
@@ -97,7 +105,7 @@ class AuthController {
                 subject: 'Recuperar contraseña',
                 html:`
                 <b>Please click on the following link, or paste this into your browse to complete the process:</b>
-                <a href="${verificationLink}"><button>Click me</button></a>
+                <a href="${verificationLink}">Click me</a>
                 `,
             });
         */
@@ -133,7 +141,7 @@ class AuthController {
             jwtPayload = jwt.verify(resetToken, config.jwtSecretReset);
             user = await userRepository.findOneOrFail({ where:{resetToken}});
         } catch (e) {
-            return res.status(401).json({message:'Something goes wrong'})
+            return res.status(401).json({message:'Ha tartado mucho tiempo intente de nuevo'})
         }
 
         user.password = newPassword;
@@ -152,6 +160,29 @@ class AuthController {
         }
 
         res.json({message:'Password change'});
+    };
+
+    static refreshToken = async (req:Request, res:Response)=> {
+        const refreshToken = req.headers.refreshToken as string;
+        
+        if(!(refreshToken)){
+            res.status(400).json({message:'Something goes wrong'});
+        }
+
+        const userRepository = getRepository(Users);
+        let user : Users;
+
+        try {
+            const verify = await jwt.verify(refreshToken, config.jwtSecretRefresh);
+            const {email} = verify as Users;
+            user = await userRepository.findOneOrFail({where:{email}});
+        } catch (e) {
+            res.status(400).json({message:'Something goes wrong'});
+        }
+
+        const token = jwt.sign({id: user.id, email: user.email}, config.jwtSecret, {expiresIn:'120'});
+
+        res.json({message:'OK', token});
     };
 }
 
