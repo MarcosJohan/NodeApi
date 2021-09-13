@@ -16,10 +16,10 @@ router.get('/', [checkJwt, checkRole(['admin'])], UserController.get);
 router.post('/', [checkJwt, checkRole(['admin'])], UserController.new);
 
 //Edit user
-router.patch('/user/:id', [checkJwt, checkRole(['admin'])], UserController.edit);
+router.put('/:id', [checkJwt, checkRole(['admin'])], UserController.edit);
 
 //Delete user
-router.delete('/user/:id', [checkJwt, checkRole(['admin'])], UserController.delete);
+router.delete('/:id', [checkJwt, checkRole(['admin'])], UserController.delete);
 
 //Get all equipos
 router.get('/equipos', [checkJwt,checkRole(['admin', 'gerente', 'analista'])], EquipoController.getAll);
@@ -31,7 +31,7 @@ router.get('/equipo', [checkJwt, checkRole(['admin', 'gerente', 'analista'])], E
 router.post('/equipo', [checkJwt, checkRole(['admin', 'gerente', 'analista'])], EquipoController.new);
 
 //Edit equipo
-router.patch('/equipo/:id', [checkJwt, checkRole(['admin', 'gerente', 'analista'])], EquipoController.edit);
+router.put('/equipo/:id', [checkJwt, checkRole(['admin', 'gerente', 'analista'])], EquipoController.edit);
 
 //Delete equipo
 router.delete('/equipo/:id', [checkJwt, checkRole(['admin', 'gerente', 'analista'])], EquipoController.delete);
