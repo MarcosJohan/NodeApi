@@ -4,12 +4,12 @@ import { getRepository } from 'typeorm';
 
 export const checkRole = (roles: Array<string>) => {
     return async (req:Request, res:Response, next: NextFunction) =>{
-        const { id } = res.locals.jwtPayload;
+        const { userId } = res.locals.jwtPayload;
         const userRepository = getRepository(Users);
         let user : Users;
 
         try {
-            user = await userRepository.findOneOrFail(id);
+            user = await userRepository.findOneOrFail( userId);
         } catch (e) {
             res.status(401).json({message:'Not authorized!'});
         }
@@ -22,4 +22,4 @@ export const checkRole = (roles: Array<string>) => {
             res.status(401).json({message:'Not authorized!'});
         }
     }
-}
+};

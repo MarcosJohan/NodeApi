@@ -1,5 +1,5 @@
 import {Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn, Column } from 'typeorm';
-import {IsNotEmpty, MinLength} from 'class-validator';
+import {IsNotEmpty, MinLength, IsNumber} from 'class-validator';
 
 @Entity()
 export class Inventario{
@@ -26,7 +26,7 @@ export class Inventario{
     
     @Column()
     @IsNotEmpty()
-    @MinLength(8)
+    @IsNumber()
     afiliado : number;
     
     @Column()

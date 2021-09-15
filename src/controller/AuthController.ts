@@ -27,8 +27,8 @@ class AuthController {
             return res.status(400).json({message:'Email or password incorrect'});
         }
 
-        const token = jwt.sign({ id: user.id, email: user.email}, config.jwtSecret, { expiresIn:'120' });
-        const refreshToken = jwt.sign({id: user.id, email: user.email}, config.jwtSecretRefresh, {expiresIn:'86400'});
+        const token = jwt.sign({ userId: user.id, email: user.email}, config.jwtSecret, { expiresIn:'1h' });
+        const refreshToken = jwt.sign({userId: user.id, email: user.email}, config.jwtSecretRefresh, {expiresIn:'1h'});
         user.refreshToken = refreshToken;
 
         try {
@@ -41,7 +41,7 @@ class AuthController {
     };
 
     static changePassword = async (req:Request, res:Response) => {
-        const { id } = res.locals.jwtPayload;
+        const { userId } = res.locals.jwtPayload;
         const { oldPassword, newPassword } = req.body;
 
         if(!(oldPassword && newPassword)){
@@ -52,7 +52,7 @@ class AuthController {
         let user : Users;
 
         try {
-            user = await userRepository.findOneOrFail(id);
+            user = await userRepository.findOneOrFail(userId);
         } catch (e) {
             res.status(400).json({message:'Something goes wrong!'});
         }
@@ -90,7 +90,7 @@ class AuthController {
 
         try {
             user = await userRepository.findOneOrFail({ where: { email } });
-            const token = jwt.sign({id:user.id, email:user.email}, config.jwtSecretReset, { expiresIn:'5m'});
+            const token = jwt.sign({userId:user.id, email:user.email}, config.jwtSecretReset, { expiresIn:'5m'});
             verificationLink = `http://localhost:4200/new-password/${token}`; 
             user.resetToken = token;
         } catch (e) {
@@ -180,7 +180,7 @@ class AuthController {
             res.status(400).json({message:'Something goes wrong'});
         }
 
-        const token = jwt.sign({id: user.id, email: user.email}, config.jwtSecret, {expiresIn:'120'});
+        const token = jwt.sign({userId: user.id, email: user.email}, config.jwtSecret, {expiresIn:'1h'});
 
         res.json({message:'OK', token});
     };

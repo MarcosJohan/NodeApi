@@ -4,7 +4,6 @@ import * as bcrypt from 'bcryptjs';
 
 @Entity()
 @Unique(['ci'])
-@Unique(['email'])
 export class Users {
   @PrimaryGeneratedColumn()
   id: number;
@@ -21,7 +20,6 @@ export class Users {
 
   @Column()
   @IsNotEmpty()
-  @MinLength(8)
   @IsNumber()
   ci : number;
 
@@ -43,12 +41,10 @@ export class Users {
 
   @Column()
   @IsOptional()
-  @IsNotEmpty()
   resetToken : string;
 
   @Column()
   @IsOptional()
-  @IsNotEmpty()
   refreshToken : string;
 
   hashPassword(): void {

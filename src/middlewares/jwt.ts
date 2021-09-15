@@ -8,13 +8,13 @@ export const checkJwt = (req:Request, res:Response, next:NextFunction) =>{
 
     try {
         jwtpayload = <any>jwt.verify(token, config.jwtSecret);
-        res.locals.jwtpayload = jwtpayload;
+        res.locals.jwtPayload = jwtpayload;
     } catch (e) {
         res.status(401).json({message:' Not Authorized'});
     }
 
-    const { id, email } = jwtpayload;
-    const newToken = jwt.sign({ id, email }, config.jwtSecret, {expiresIn:'1h'});
+    const { userId, email } = jwtpayload;
+    const newToken = jwt.sign({ userId, email }, config.jwtSecret, {expiresIn:'1h'});
     res.setHeader('token', newToken);
 
     next();

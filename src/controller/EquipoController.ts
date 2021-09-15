@@ -6,7 +6,7 @@ import { Inventario } from '../entity/Inventario';
 export class EquipoController{
     static getAll = async (req:Request, res:Response) => {
         const iRepository = getRepository(Inventario);
-        let inventario;
+        let inventario : Inventario[];
 
         try {
             inventario = await iRepository.find();
@@ -23,11 +23,11 @@ export class EquipoController{
 
     static get = async (req:Request, res:Response) => {
         const iRepository = getRepository(Inventario);
-        const { fantasia } = req.body;
+        const { id } = req.params;
         let inventario;
 
         try {
-            inventario = await iRepository.findOneOrFail(fantasia);
+            inventario = await iRepository.findOneOrFail(id);
         } catch (e) {
             return res.status(404).json({message:'Not result'});
         }
@@ -37,8 +37,8 @@ export class EquipoController{
 
     static new = async (req:Request, res:Response) => {
         const iRepository = getRepository(Inventario);
-        const { rif, serial, modelo, estado, afiliado, banco, razSoc, localizacion, nTerm, fantasia} = req.body;
-        let inventario : Inventario;
+        let { rif, serial, modelo, estado, afiliado, banco, razSoc, localizacion, nTerm, fantasia} = req.body;
+        let inventario = new Inventario();
 
         inventario.rif = rif;
         inventario.serial = serial;
@@ -63,7 +63,7 @@ export class EquipoController{
             return res.status(409).json({message:'Already exist!'})
         }
 
-        res.send('Cliente register!')
+        res.send({MESSAGE:'Client register!'});
     };
 
     static edit = async (req:Request, res:Response) => {

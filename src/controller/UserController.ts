@@ -22,22 +22,16 @@ export class UserController {
     };
 
     static get = async (req:Request, res:Response) => {
-        const { name } = req.body;
+        const { id } = req.params;
         const userRepository = getRepository(Users);
-        let users;
+        let user;
 
         try {
-            users = await userRepository.find(name);
+            user = await userRepository.findOneOrFail(id);
+            res.send(user)
         } catch (e) {
             res.status(404).json({message:' Not result'})
         }
-
-        if(users.length > 0){
-            res.send(users);
-        }else{
-            res.status(404).json({message:'Not result!'})
-        }
-
     };
 
     static new = async (req:Request, res:Response) => {
@@ -61,12 +55,13 @@ export class UserController {
 
         try {
             user.hashPassword();
-            await userRepository.save(user); 
+            await userRepository.save(user);
+             res.send({message:'User created'});
         } catch (e) {
-            return res.status(409).json({message:'User already exist!'})
+            return res.status(409).json({message:'User already exist!',e})
         }
 
-        res.send('User created');
+        
     }; 
 
     static edit = async (req:Request, res:Response) => {
@@ -99,7 +94,7 @@ export class UserController {
         try {
             await userRepository.save(user);
         } catch (error) {
-            return res.status(409).json({message:'Data in use'});
+            return res.status(409).json({message:'Data in use', error});
         }
 
         res.status(201).json({message:'User update'});
